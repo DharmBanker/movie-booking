@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}MovieBooking{% endblock %}</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0d0d12;--surface:#16161f;--card:#1e1e2a;--border:#2a2a3a;
+      --accent:#e94560;--gold:#f5a623;--green:#2ecc71;--blue:#3498db;
+      --text:#eeeef5;--muted:#7777a0;--radius:10px;
+      --shadow:0 8px 32px rgba(0,0,0,.5);
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    a{color:inherit;text-decoration:none}
+    button{cursor:pointer;font-family:inherit;border:none;outline:none}
+    input,select,textarea{font-family:inherit;outline:none}
+    img{display:block;max-width:100%}
+
+    /* NAV */
+    .nav{
+      position:sticky;top:0;z-index:500;
+      background:rgba(13,13,18,.95);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+      height:62px;display:flex;align-items:center;
+      padding:0 28px;gap:32px;
+    }
+    .nav-brand{font-size:20px;font-weight:900;letter-spacing:.3px}
+    .nav-brand .r{color:var(--accent)}
+    .nav-links{display:flex;gap:4px;margin-left:auto}
+    .nav-link{
+      padding:7px 16px;border-radius:8px;font-size:14px;font-weight:500;
+      color:var(--muted);transition:all .2s;
+    }
+    .nav-link:hover,.nav-link.on{color:var(--text);background:var(--surface)}
+    .nav-link.on{color:var(--accent)}
+
+    /* LAYOUT */
+    .wrap{max-width:1240px;margin:0 auto;padding:32px 20px}
+
+    /* BUTTONS */
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:7px;
+      padding:11px 24px;border-radius:var(--radius);font-size:14px;font-weight:700;
+      transition:all .18s;border:none;
+    }
+    .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+    .btn:active{transform:translateY(0)}
+    .btn-red{background:var(--accent);color:#fff}
+    .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+    .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+    .btn-sm{padding:7px 16px;font-size:13px}
+    .btn-full{width:100%}
+    .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;filter:none}
+
+    /* CARD */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius)}
+
+    /* BADGE */
+    .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px}
+    .b-red{background:rgba(233,69,96,.15);color:var(--accent);border:1px solid rgba(233,69,96,.25)}
+    .b-gold{background:rgba(245,166,35,.15);color:var(--gold);border:1px solid rgba(245,166,35,.25)}
+    .b-green{background:rgba(46,204,113,.15);color:var(--green);border:1px solid rgba(46,204,113,.25)}
+    .b-muted{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+    .b-blue{background:rgba(52,152,219,.15);color:var(--blue);border:1px solid rgba(52,152,219,.25)}
+
+    /* SPINNER */
+    .spin{width:40px;height:40px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--accent);animation:rot .7s linear infinite;margin:60px auto}
+    @keyframes rot{to{transform:rotate(360deg)}}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:80px 20px;color:var(--muted)}
+    .empty-ico{font-size:52px;margin-bottom:16px}
+    .empty h3{font-size:20px;color:var(--text);margin-bottom:8px}
+    .empty p{font-size:14px}
+
+    /* TOAST */
+    #toasts{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+    .toast{
+      padding:14px 20px;border-radius:var(--radius);font-size:14px;font-weight:500;
+      box-shadow:var(--shadow);min-width:280px;pointer-events:all;
+      animation:tin .3s ease;
+    }
+    @keyframes tin{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:none}}
+    .t-ok{background:#0d2a1a;border:1px solid var(--green);color:#7ef5a8}
+    .t-err{background:#2a0d0d;border:1px solid var(--accent);color:#f5a0a0}
+    .t-info{background:var(--surface);border:1px solid var(--border);color:var(--text)}
+
+    /* MODAL */
+    .overlay{
+      position:fixed;inset:0;z-index:800;
+      background:rgba(0,0,0,.8);backdrop-filter:blur(6px);
+      display:none;align-items:center;justify-content:center;padding:20px;
+    }
+    .overlay.open{display:flex}
+    .modal{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:14px;padding:32px;width:100%;max-width:500px;
+      max-height:90vh;overflow-y:auto;
+    }
+    .modal-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px}
+    .modal-title{font-size:20px;font-weight:800}
+    .modal-sub{font-size:13px;color:var(--muted);margin-top:4px}
+    .close-btn{background:none;border:none;color:var(--muted);font-size:22px;line-height:1;padding:0;cursor:pointer}
+    .close-btn:hover{color:var(--text)}
+
+    /* FORM */
+    .field{margin-bottom:16px}
+    .field label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:7px}
+    .inp{
+      width:100%;padding:11px 14px;border-radius:var(--radius);
+      background:var(--card);border:1px solid var(--border);
+      color:var(--text);font-size:14px;transition:border-color .2s;
+    }
+    .inp:focus{border-color:var(--accent)}
+    .inp::placeholder{color:var(--muted)}
+
+    /* DIVIDER */
+    .divider{height:1px;background:var(--border);margin:20px 0}
+
+    @media(max-width:600px){
+      .nav{padding:0 14px;gap:16px}
+      .wrap{padding:20px 14px}
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-brand">🎬 Movie<span class="r">Booking</span></a>
+  <div class="nav-links">
+    <a href="/" class="nav-link" id="nl-home">Movies</a>
+    <a href="/my-bookings/" class="nav-link" id="nl-bk">My Bookings</a>
+  </div>
+</nav>
+
+<div id="toasts"></div>
+
+{% block content %}{% endblock %}
+
+<script>
+  // Active nav
+  const p=location.pathname;
+  if(p==='/'||p.startsWith('/movies'))document.getElementById('nl-home').classList.add('on');
+  if(p.startsWith('/my-bookings'))document.getElementById('nl-bk').classList.add('on');
+
+  // Toast
+  function toast(msg,type='info',ms=3800){
+    const c=document.getElementById('toasts');
+    const el=document.createElement('div');
+    el.className=`toast t-${type}`;el.textContent=msg;
+    c.appendChild(el);setTimeout(()=>el.remove(),ms);
+  }
+
+  // CSRF token — fetched once, reused for all POST requests
+  let _csrf='';
+  async function getCSRF(){
+    if(_csrf)return _csrf;
+    const r=await fetch('/api/csrf/');
+    const d=await r.json().catch(()=>({}));
+    _csrf=d.csrfToken||'';
+    return _csrf;
+  }
+
+  // API — automatically includes CSRF for POST/PUT/PATCH/DELETE
+  async function api(url,opts={}){
+    try{
+      const method=(opts.method||'GET').toUpperCase();
+      const headers={'Content-Type':'application/json',...(opts.headers||{})};
+      if(['POST','PUT','PATCH','DELETE'].includes(method)){
+        headers['X-CSRFToken']=await getCSRF();
+      }
+      const r=await fetch(url,{...opts,method,headers});
+      const d=await r.json().catch(()=>({}));
+      return{ok:r.ok,status:r.status,data:d};
+    }catch(e){return{ok:false,status:0,data:{}};}
+  }
+
+  // Format helpers
+  function fmtDate(s){return new Date(s+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}
+  function fmtTime(s){return new Date(s).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true})}
+  function fmtDT(s){return new Date(s).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

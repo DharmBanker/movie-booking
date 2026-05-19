@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmed — {{ movie_title }}</title>
+    <style>
+        /* Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f4f7;
+            color: #333333;
+            line-height: 1.6;
+        }
+
+        .email-wrapper {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 40px 32px;
+            text-align: center;
+        }
+
+        .header .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: #e94560;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .header .checkmark {
+            width: 64px;
+            height: 64px;
+            background-color: #27ae60;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #a0aec0;
+            font-size: 15px;
+        }
+
+        /* Booking Reference Banner */
+        .reference-banner {
+            background-color: #e94560;
+            padding: 16px 32px;
+            text-align: center;
+        }
+
+        .reference-banner .label {
+            color: rgba(255,255,255,0.8);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .reference-banner .reference {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Content */
+        .content {
+            padding: 32px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            color: #2d3748;
+            margin-bottom: 24px;
+        }
+
+        /* Movie Card */
+        .movie-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .movie-info h2 {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .movie-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background-color: rgba(233, 69, 96, 0.2);
+            color: #e94560;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Details Grid */
+        .details-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #718096;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .detail-item .label {
+            font-size: 12px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .detail-item .value {
+            font-size: 15px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        /* Seats */
+        .seats-container {
+            background-color: #f7fafc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .seats-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .seat-badge {
+            background-color: #1a1a2e;
+            color: #e94560;
+            border: 1px solid #e94560;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Payment Summary */
+        .payment-summary {
+            background-color: #f7fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .payment-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .payment-row:last-child {
+            border-bottom: none;
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+
+        .payment-row .pay-label {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .payment-row .pay-value {
+            color: #2d3748;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .payment-row.total .pay-label {
+            color: #2d3748;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .payment-row.total .pay-value {
+            color: #27ae60;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* Payment ID */
+        .payment-id-box {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+        }
+
+        .payment-id-box .label {
+            font-size: 12px;
+            color: #2b6cb0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .payment-id-box .value {
+            font-size: 14px;
+            color: #1a365d;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        /* CTA Button */
+        .cta-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: #e94560;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 36px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #1a1a2e;
+            padding: 24px 32px;
+            text-align: center;
+        }
+
+        .footer p {
+            color: #718096;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .footer a {
+            color: #e94560;
+            text-decoration: none;
+        }
+
+        .footer .copyright {
+            color: #4a5568;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .email-wrapper { margin: 0; border-radius: 0; }
+            .content { padding: 20px; }
+            .details-grid { grid-template-columns: 1fr; }
+            .movie-card { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">🎬 MovieBooking</div>
+            <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
+            <h1>Booking Confirmed!</h1>
+            <p>Your tickets are ready. Enjoy the show!</p>
+        </div>
+
+        <!-- Booking Reference Banner -->
+        <div class="reference-banner">
+            <div class="label">Booking Reference</div>
+            <div class="reference">{{ booking_reference }}</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+
+            <!-- Greeting -->
+            <p class="greeting">Hi <strong>{{ user_name }}</strong>,</p>
+            <p style="color: #4a5568; margin-bottom: 24px;">
+                Your booking has been confirmed successfully. Here are your booking details:
+            </p>
+
+            <!-- Movie Card -->
+            <div class="movie-card">
+                <div class="movie-info">
+                    <h2>{{ movie_title }}</h2>
+                    <div class="movie-meta">
+                        <span class="badge">{{ show_language }}</span>
+                        <span class="badge">{{ show_format }}</span>
+                        {% if movie_certificate %}
+                        <span class="badge">{{ movie_certificate }}</span>
+                        {% endif %}
+                        <span class="badge">{{ movie_duration }} min</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Show Details -->
+            <div class="details-section">
+                <div class="section-title">Show Details</div>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <div class="label">📅 Date</div>
+                        <div class="value">{{ show_datetime|date:"D, d M Y" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="label">🕐 Time</div>
+                        <div class="value">{{ show_datetime|time:"h:i A" }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="label">🏛️ Theater</div>
+                        <div class="value">{{ theater_name }}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="label">📍 Location</div>
+                        <div class="value">{{ theater_city }}</div>
+                    </div>
+                </div>
+                <div style="margin-top: 12px;">
+                    <div class="detail-item">
+                        <div class="label">🗺️ Address</div>
+                        <div class="value" style="font-weight: 400; color: #4a5568;">{{ theater_address }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seats -->
+            <div class="seats-container">
+                <div class="section-title">Your Seats ({{ seat_count }} ticket{{ seat_count|pluralize }})</div>
+                <div class="seats-list">
+                    {% for seat in seats %}
+                    <span class="seat-badge">{{ seat }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="payment-summary">
+                <div class="section-title">Payment Summary</div>
+                <div class="payment-row">
+                    <span class="pay-label">Price per seat</span>
+                    <span class="pay-value">₹{{ price_per_seat }}</span>
+                </div>
+                <div class="payment-row">
+                    <span class="pay-label">Number of seats</span>
+                    <span class="pay-value">× {{ seat_count }}</span>
+                </div>
+                <div class="payment-row total">
+                    <span class="pay-label">Total Amount Paid</span>
+                    <span class="pay-value">₹{{ total_amount }}</span>
+                </div>
+            </div>
+
+            <!-- Payment ID -->
+            <div class="payment-id-box">
+                <div class="label">💳 Payment Reference ID</div>
+                <div class="value">{{ payment_id }}</div>
+            </div>
+
+            <!-- CTA -->
+            <div class="cta-section">
+                <a href="{{ frontend_url }}/bookings/{{ booking_reference }}" class="cta-button">
+                    View Booking Details
+                </a>
+            </div>
+
+            <!-- Important Notes -->
+            <div style="background-color: #fffbeb; border: 1px solid #f6e05e; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+                <p style="font-size: 13px; color: #744210; font-weight: 600; margin-bottom: 8px;">📌 Important Notes:</p>
+                <ul style="font-size: 13px; color: #744210; padding-left: 20px;">
+                    <li>Please arrive 15 minutes before the show time.</li>
+                    <li>Carry a valid photo ID for verification.</li>
+                    <li>Show this email or your booking reference at the counter.</li>
+                    <li>Outside food and beverages are not allowed.</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Need help? Contact us at <a href="mailto:{{ support_email }}">{{ support_email }}</a></p>
+            <p>This is an automated email. Please do not reply directly to this email.</p>
+            <div class="copyright">© {{ current_year }} MovieBooking. All rights reserved.</div>
+        </div>
+
+    </div>
+</body>
+</html>

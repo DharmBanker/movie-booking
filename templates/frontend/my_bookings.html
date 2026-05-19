@@ -1,0 +1,139 @@
+{% extends "frontend/base.html" %}
+{% block title %}My Bookings — MovieBooking{% endblock %}
+
+{% block head %}
+<style>
+.ph{margin-bottom:32px}
+.ph h1{font-size:28px;font-weight:900}
+.ph p{color:var(--muted);margin-top:6px;font-size:15px}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}
+@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;text-align:center}
+.stat .n{font-size:34px;font-weight:900;color:var(--accent)}
+.stat .l{font-size:13px;color:var(--muted);margin-top:4px}
+
+/* BOOKING CARDS */
+.blist{display:flex;flex-direction:column;gap:16px}
+.bc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s}
+.bc:hover{border-color:rgba(233,69,96,.4)}
+
+.bc-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;
+}
+.bc-ref{font-family:'Courier New',monospace;font-size:16px;font-weight:800;color:var(--accent);letter-spacing:1px}
+.bc-date{font-size:13px;color:var(--muted)}
+
+.bc-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0}
+@media(max-width:600px){.bc-body{grid-template-columns:1fr}}
+.bc-field{padding:16px 20px;border-right:1px solid var(--border)}
+.bc-field:last-child{border-right:none}
+.bc-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.bc-val{font-size:15px;font-weight:700}
+
+.bc-foot{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;background:var(--surface);flex-wrap:wrap;gap:12px;
+}
+.seat-pills{display:flex;gap:6px;flex-wrap:wrap}
+.sp{
+  padding:3px 10px;border-radius:6px;
+  background:rgba(233,69,96,.1);border:1px solid rgba(233,69,96,.25);
+  color:var(--accent);font-size:12px;font-weight:800;font-family:monospace;
+}
+.st-confirmed{color:var(--green);font-weight:800;font-size:13px}
+.st-cancelled{color:var(--accent);font-weight:800;font-size:13px}
+.st-pending{color:var(--gold);font-weight:800;font-size:13px}
+.total-amt{font-size:22px;font-weight:900;color:var(--gold)}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <div class="ph">
+    <h1>🎟 My Bookings</h1>
+    <p>All your confirmed movie tickets in one place</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n" id="s-total">—</div><div class="l">Total Bookings</div></div>
+    <div class="stat"><div class="n" id="s-seats">—</div><div class="l">Tickets Booked</div></div>
+    <div class="stat"><div class="n" id="s-spent">—</div><div class="l">Total Spent</div></div>
+  </div>
+
+  <div id="container"><div class="spin"></div></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function load(){
+  const {ok,data}=await api('/api/v1/bookings/list/');
+  if(!ok){toast('Failed to load bookings','err');return;}
+  const bk=data.results||[];
+
+  document.getElementById('s-total').textContent=data.count||bk.length;
+  document.getElementById('s-seats').textContent=bk.reduce((a,b)=>a+b.seat_count,0);
+  const spent=bk.reduce((a,b)=>a+parseFloat(b.total_amount),0);
+  document.getElementById('s-spent').textContent='₹'+spent.toLocaleString('en-IN',{maximumFractionDigits:0});
+
+  if(!bk.length){
+    document.getElementById('container').innerHTML=`
+      <div class="empty">
+        <div class="empty-ico">🎟</div>
+        <h3>No bookings yet</h3>
+        <p>Browse movies and book your first ticket!</p>
+        <a href="/" class="btn btn-red" style="margin-top:20px">Browse Movies</a>
+      </div>`;
+    return;
+  }
+
+  const stClass={confirmed:'st-confirmed',cancelled:'st-cancelled',pending:'st-pending'};
+  const html=bk.map(b=>{
+    const seats=b.seats.map(s=>`<span class="sp">${s}</span>`).join('');
+    const showDt=b.show_datetime?fmtDT(b.show_datetime):'—';
+    const bookedAt=fmtDT(b.booked_at);
+    return`
+    <div class="bc">
+      <div class="bc-head">
+        <div>
+          <div class="bc-ref">${b.booking_reference}</div>
+          <div class="bc-date">Booked ${bookedAt}</div>
+        </div>
+        <span class="${stClass[b.status]||'st-pending'}">${b.status.toUpperCase()}</span>
+      </div>
+      <div class="bc-body">
+        <div class="bc-field">
+          <div class="bc-label">🎬 Movie</div>
+          <div class="bc-val">${b.movie_title}</div>
+        </div>
+        <div class="bc-field">
+          <div class="bc-label">🏛 Theater</div>
+          <div class="bc-val">${b.theater_name}</div>
+        </div>
+        <div class="bc-field">
+          <div class="bc-label">🕐 Show Time</div>
+          <div class="bc-val">${showDt}</div>
+        </div>
+      </div>
+      <div class="bc-foot">
+        <div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:1px">Seats (${b.seat_count})</div>
+          <div class="seat-pills">${seats}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Total Paid</div>
+          <div class="total-amt">₹${parseFloat(b.total_amount).toLocaleString('en-IN')}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('container').innerHTML=`<div class="blist">${html}</div>`;
+}
+
+load();
+</script>
+{% endblock %}

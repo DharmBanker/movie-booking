@@ -1,0 +1,324 @@
+{% extends "frontend/base.html" %}
+{% block title %}Movies — MovieBooking{% endblock %}
+
+{% block head %}
+<style>
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#12122a 0%,#1a1a3a 50%,#0f2040 100%);
+  border:1px solid var(--border);border-radius:14px;
+  padding:52px 40px;margin-bottom:36px;position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:300px;height:300px;border-radius:50%;
+  background:radial-gradient(circle,rgba(233,69,96,.18),transparent 70%);
+}
+.hero h1{font-size:38px;font-weight:900;line-height:1.15;margin-bottom:10px}
+.hero h1 em{color:var(--accent);font-style:normal}
+.hero p{color:var(--muted);font-size:16px;max-width:480px}
+.hero-stats{display:flex;gap:28px;margin-top:24px;flex-wrap:wrap}
+.hero-stat .n{font-size:26px;font-weight:800;color:var(--accent)}
+.hero-stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:256px 1fr;gap:28px;align-items:start}
+@media(max-width:860px){.layout{grid-template-columns:1fr}}
+
+/* SIDEBAR */
+.sidebar{position:sticky;top:78px}
+.sb-section{margin-bottom:22px}
+.sb-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;
+  border:1px solid var(--border);background:var(--surface);color:var(--muted);
+  cursor:pointer;transition:all .18s;
+}
+.chip:hover{border-color:var(--accent);color:var(--text)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip .cnt{
+  background:rgba(255,255,255,.18);border-radius:10px;
+  padding:1px 6px;font-size:10px;
+}
+.chip.on .cnt{background:rgba(0,0,0,.2)}
+.sel{
+  width:100%;padding:9px 12px;border-radius:var(--radius);
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text);font-size:14px;
+}
+.sel:focus{border-color:var(--accent)}
+.srch{
+  width:100%;padding:9px 12px 9px 36px;border-radius:var(--radius);
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text);font-size:14px;
+}
+.srch:focus{border-color:var(--accent)}
+.srch::placeholder{color:var(--muted)}
+.srch-wrap{position:relative}
+.srch-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px;pointer-events:none}
+.clear-all{
+  width:100%;padding:9px;border-radius:var(--radius);
+  background:transparent;border:1px solid var(--border);
+  color:var(--muted);font-size:13px;transition:all .2s;margin-top:4px;
+}
+.clear-all:hover{border-color:var(--accent);color:var(--accent)}
+
+/* RESULTS */
+.rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.rcount{font-size:14px;color:var(--muted)}
+.rcount strong{color:var(--text)}
+
+/* GRID */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px}
+
+/* MOVIE CARD */
+.mc{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;cursor:pointer;
+  transition:transform .2s,box-shadow .2s,border-color .2s;
+}
+.mc:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(233,69,96,.2);border-color:var(--accent)}
+.mc-poster{
+  width:100%;aspect-ratio:2/3;background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  font-size:56px;overflow:hidden;position:relative;
+}
+.mc-poster img{width:100%;height:100%;object-fit:cover}
+.mc-cert{
+  position:absolute;top:8px;right:8px;
+  background:rgba(0,0,0,.75);border-radius:4px;
+  padding:2px 7px;font-size:11px;font-weight:700;color:#fff;
+}
+.mc-body{padding:13px}
+.mc-title{font-size:13px;font-weight:700;margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap}
+.mc-rating{font-size:13px;font-weight:800;color:var(--gold)}
+.mc-dur{font-size:12px;color:var(--muted)}
+.mc-genres{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.mc-genre{font-size:10px;padding:2px 7px;border-radius:8px;background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.mc-status{font-size:11px;font-weight:700}
+.s-now{color:var(--green)}.s-up{color:var(--gold)}.s-end{color:var(--muted)}
+
+/* PAGINATION */
+.pager{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:40px;flex-wrap:wrap}
+.pg{
+  padding:8px 15px;border-radius:var(--radius);
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text);font-size:14px;transition:all .18s;
+}
+.pg:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.pg:disabled{opacity:.3;cursor:not-allowed}
+.pg.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.pg-dots{color:var(--muted);padding:0 4px}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>Book Your <em>Movie Tickets</em><br>Instantly</h1>
+    <p>Browse movies, filter by genre & language, pick your seats and confirm in seconds.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="n" id="hs-movies">—</div><div class="l">Movies</div></div>
+      <div class="hero-stat"><div class="n" id="hs-genres">—</div><div class="l">Genres</div></div>
+      <div class="hero-stat"><div class="n" id="hs-langs">—</div><div class="l">Languages</div></div>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar card" style="padding:20px">
+
+      <div class="sb-section">
+        <div class="sb-label">Search</div>
+        <div class="srch-wrap">
+          <span class="srch-ico">🔍</span>
+          <input class="srch" id="srch" placeholder="Movie title or director…"/>
+        </div>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label">Sort By</div>
+        <select class="sel" id="sort">
+          <option value="release_desc">Latest Release</option>
+          <option value="rating_desc">Highest Rated</option>
+          <option value="rating_asc">Lowest Rated</option>
+          <option value="title_asc">Title A–Z</option>
+          <option value="release_asc">Oldest Release</option>
+        </select>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label">Genre</div>
+        <div class="chips" id="genre-chips"></div>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label">Language</div>
+        <div class="chips" id="lang-chips"></div>
+      </div>
+
+      <div class="sb-section">
+        <div class="sb-label">Status</div>
+        <div class="chips">
+          <span class="chip" data-k="status" data-v="now_showing">● Now Showing</span>
+          <span class="chip" data-k="status" data-v="upcoming">▲ Upcoming</span>
+        </div>
+      </div>
+
+      <button class="clear-all" id="clear">✕ Clear All Filters</button>
+    </aside>
+
+    <!-- MAIN -->
+    <main>
+      <div class="rh">
+        <div class="rcount" id="rcount">Loading…</div>
+      </div>
+      <div id="grid" class="mgrid"></div>
+      <div id="pager" class="pager"></div>
+    </main>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const S={page:1,limit:20,genres:[],langs:[],status:'',sort:'release_desc',q:''};
+let debounce=null;
+
+async function load(){
+  document.getElementById('grid').innerHTML='<div class="spin"></div>';
+  document.getElementById('rcount').textContent='Loading…';
+  const p=new URLSearchParams({page:S.page,limit:S.limit,sort:S.sort});
+  if(S.genres.length) p.set('genres',S.genres.join(','));
+  if(S.langs.length)  p.set('languages',S.langs.join(','));
+  if(S.status)        p.set('status',S.status);
+  if(S.q)             p.set('search',S.q);
+  const {ok,data}=await api('/api/v1/movies/?'+p);
+  if(!ok){toast('Failed to load movies','err');return;}
+  renderGrid(data.results);
+  renderPager(data);
+  updateCounts(data.genre_counts,data.language_counts);
+  document.getElementById('rcount').innerHTML=
+    `Showing <strong>${data.results.length}</strong> of <strong>${data.count}</strong> movies`;
+  document.getElementById('hs-movies').textContent=data.count;
+}
+
+function renderGrid(movies){
+  const g=document.getElementById('grid');
+  if(!movies.length){
+    g.innerHTML=`<div class="empty" style="grid-column:1/-1">
+      <div class="empty-ico">🎬</div><h3>No movies found</h3>
+      <p>Try different filters</p></div>`;return;
+  }
+  const smap={now_showing:'<span class="mc-status s-now">● Now Showing</span>',
+               upcoming:'<span class="mc-status s-up">▲ Upcoming</span>',
+               ended:'<span class="mc-status s-end">✓ Ended</span>'};
+  g.innerHTML=movies.map(m=>{
+    const r=parseFloat(m.rating).toFixed(1);
+    const genres=m.genres.slice(0,2).map(g=>`<span class="mc-genre">${g.name}</span>`).join('');
+    const poster=m.poster_url
+      ?`<img src="${m.poster_url}" alt="${m.title}" loading="lazy"/>`
+      :`<span>🎬</span>`;
+    const cert=m.certificate?`<span class="mc-cert">${m.certificate}</span>`:'';
+    return`<div class="mc" onclick="location.href='/movies/${m.slug}/'">
+      <div class="mc-poster">${poster}${cert}</div>
+      <div class="mc-body">
+        <div class="mc-title" title="${m.title}">${m.title}</div>
+        <div class="mc-row">
+          <span class="mc-rating">★ ${r}</span>
+          <span class="mc-dur">${m.duration_minutes}m</span>
+        </div>
+        <div class="mc-genres">${genres}</div>
+        ${smap[m.status]||''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPager(d){
+  const el=document.getElementById('pager');
+  if(d.total_pages<=1){el.innerHTML='';return;}
+  const cur=d.current_page,tot=d.total_pages;
+  let h=`<button class="pg" ${cur===1?'disabled':''} onclick="go(${cur-1})">← Prev</button>`;
+  const nums=[...new Set([1,Math.max(1,cur-1),cur,Math.min(tot,cur+1),tot])].sort((a,b)=>a-b);
+  let prev=0;
+  for(const n of nums){
+    if(n-prev>1)h+=`<span class="pg-dots">…</span>`;
+    h+=`<button class="pg ${n===cur?'on':''}" onclick="go(${n})">${n}</button>`;
+    prev=n;
+  }
+  h+=`<button class="pg" ${cur===tot?'disabled':''} onclick="go(${cur+1})">Next →</button>`;
+  el.innerHTML=h;
+}
+
+function go(p){S.page=p;load();window.scrollTo({top:0,behavior:'smooth'})}
+
+function updateCounts(gc,lc){
+  document.querySelectorAll('.chip[data-k="genre"]').forEach(c=>{
+    const f=gc.find(g=>g.id===+c.dataset.v);
+    const el=c.querySelector('.cnt');
+    if(el)el.textContent=f?f.count:0;
+  });
+  document.querySelectorAll('.chip[data-k="lang"]').forEach(c=>{
+    const f=lc.find(l=>l.id===+c.dataset.v);
+    const el=c.querySelector('.cnt');
+    if(el)el.textContent=f?f.count:0;
+  });
+}
+
+async function loadFilters(){
+  const [gr,lr]=await Promise.all([api('/api/v1/genres/'),api('/api/v1/languages/')]);
+  if(gr.ok){
+    document.getElementById('genre-chips').innerHTML=gr.data.map(g=>
+      `<span class="chip" data-k="genre" data-v="${g.id}">${g.name}<span class="cnt">${g.movie_count}</span></span>`
+    ).join('');
+    document.getElementById('hs-genres').textContent=gr.data.length;
+  }
+  if(lr.ok){
+    document.getElementById('lang-chips').innerHTML=lr.data.map(l=>
+      `<span class="chip" data-k="lang" data-v="${l.id}">${l.name}<span class="cnt">${l.movie_count}</span></span>`
+    ).join('');
+    document.getElementById('hs-langs').textContent=lr.data.length;
+  }
+  document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>toggle(c)));
+}
+
+function toggle(c){
+  const k=c.dataset.k,v=c.dataset.v;
+  c.classList.toggle('on');S.page=1;
+  if(k==='genre'){
+    const id=+v;
+    S.genres=c.classList.contains('on')?[...S.genres,id]:S.genres.filter(x=>x!==id);
+  }else if(k==='lang'){
+    const id=+v;
+    S.langs=c.classList.contains('on')?[...S.langs,id]:S.langs.filter(x=>x!==id);
+  }else if(k==='status'){
+    document.querySelectorAll('.chip[data-k="status"]').forEach(x=>{if(x!==c)x.classList.remove('on')});
+    S.status=c.classList.contains('on')?v:'';
+  }
+  load();
+}
+
+document.getElementById('sort').addEventListener('change',e=>{S.sort=e.target.value;S.page=1;load()});
+document.getElementById('srch').addEventListener('input',e=>{
+  clearTimeout(debounce);
+  debounce=setTimeout(()=>{S.q=e.target.value.trim();S.page=1;load()},380);
+});
+document.getElementById('clear').addEventListener('click',()=>{
+  S.genres=[];S.langs=[];S.status='';S.q='';S.page=1;S.sort='release_desc';
+  document.getElementById('srch').value='';
+  document.getElementById('sort').value='release_desc';
+  document.querySelectorAll('.chip.on').forEach(c=>c.classList.remove('on'));
+  load();
+});
+
+loadFilters().then(load);
+</script>
+{% endblock %}

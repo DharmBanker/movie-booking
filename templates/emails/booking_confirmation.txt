@@ -1,0 +1,56 @@
+MovieBooking — Booking Confirmation
+=====================================
+
+Hi {{ user_name }},
+
+Your booking has been confirmed! Here are your details:
+
+BOOKING REFERENCE: {{ booking_reference }}
+=====================================
+
+MOVIE DETAILS
+-------------
+Movie       : {{ movie_title }}
+Language    : {{ show_language }}
+Format      : {{ show_format }}
+Duration    : {{ movie_duration }} minutes
+Certificate : {{ movie_certificate|default:"N/A" }}
+
+SHOW DETAILS
+------------
+Date        : {{ show_datetime|date:"D, d M Y" }}
+Time        : {{ show_datetime|time:"h:i A" }}
+Theater     : {{ theater_name }}
+City        : {{ theater_city }}
+Address     : {{ theater_address }}
+
+YOUR SEATS ({{ seat_count }} ticket{{ seat_count|pluralize }})
+-----------
+{{ seats_display }}
+
+PAYMENT SUMMARY
+---------------
+Price per seat  : Rs. {{ price_per_seat }}
+Number of seats : {{ seat_count }}
+Total Amount    : Rs. {{ total_amount }}
+
+PAYMENT REFERENCE ID
+--------------------
+{{ payment_id }}
+
+=====================================
+
+IMPORTANT NOTES:
+- Please arrive 15 minutes before the show time.
+- Carry a valid photo ID for verification.
+- Show this email or your booking reference at the counter.
+- Outside food and beverages are not allowed.
+
+View your booking online:
+{{ frontend_url }}/bookings/{{ booking_reference }}
+
+=====================================
+Need help? Contact us at {{ support_email }}
+
+This is an automated email. Please do not reply directly.
+© {{ current_year }} MovieBooking. All rights reserved.

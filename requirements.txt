@@ -1,0 +1,59 @@
+# ============================================================
+# Movie Booking Backend — Python Dependencies
+# ============================================================
+
+# Core
+Django==4.2.13
+djangorestframework==3.15.1
+
+# Database
+# Python <= 3.12: pip install psycopg2-binary==2.9.9
+# Python >= 3.13: psycopg (included below)
+psycopg==3.3.4
+dj-database-url==3.1.2
+
+# Background Tasks
+celery==5.3.6
+redis==5.0.3
+django-celery-results==2.5.1
+
+# Filtering
+django-filter==23.5
+
+# Environment Variables
+python-dotenv==1.0.1
+
+# Production Server
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# API Documentation
+drf-spectacular==0.27.2
+
+# Celery internals
+amqp==5.3.1
+billiard==4.2.4
+kombu==5.6.2
+vine==5.1.0
+click==8.4.0
+click-didyoumean==0.3.1
+click-plugins==1.1.1.2
+click-repl==0.3.0
+
+# Django internals
+asgiref==3.11.1
+sqlparse==0.5.5
+
+# drf-spectacular internals
+inflection==0.5.1
+jsonschema==4.26.0
+jsonschema-specifications==2025.9.1
+PyYAML==6.0.3
+uritemplate==4.2.0
+referencing==0.37.0
+rpds-py==0.30.0
+
+# Utilities
+python-dateutil==2.9.0.post0
+tzdata==2026.2
+six==1.17.0

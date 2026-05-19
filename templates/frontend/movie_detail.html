@@ -1,0 +1,436 @@
+{% extends "frontend/base.html" %}
+{% block title %}Movie Detail — MovieBooking{% endblock %}
+
+{% block head %}
+<style>
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:14px;margin-bottom:24px;transition:color .2s}
+.back:hover{color:var(--accent)}
+
+/* DETAIL HERO */
+.dh{display:grid;grid-template-columns:220px 1fr;gap:32px;margin-bottom:44px}
+@media(max-width:700px){.dh{grid-template-columns:1fr}}
+.dh-poster{
+  border-radius:12px;overflow:hidden;aspect-ratio:2/3;
+  background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:72px;
+}
+.dh-poster img{width:100%;height:100%;object-fit:cover}
+.dh-info{display:flex;flex-direction:column;gap:14px}
+.dh-title{font-size:32px;font-weight:900;line-height:1.15}
+.dh-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dh-rating{font-size:22px;font-weight:900;color:var(--gold)}
+.dh-votes{font-size:13px;color:var(--muted)}
+.dh-tags{display:flex;gap:7px;flex-wrap:wrap}
+.dh-desc{color:var(--muted);line-height:1.75;font-size:15px}
+.dh-credits{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cr-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.cr-val{font-size:14px;font-weight:600}
+
+/* SHOWS */
+.sec-title{font-size:22px;font-weight:800;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.date-bar{display:flex;gap:8px;margin-bottom:22px;overflow-x:auto;padding-bottom:4px}
+.date-btn{
+  flex-shrink:0;padding:8px 18px;border-radius:var(--radius);
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;
+  transition:all .18s;white-space:nowrap;
+}
+.date-btn:hover{border-color:var(--accent);color:var(--text)}
+.date-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.shows-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;transition:border-color .2s}
+.sc:hover{border-color:rgba(233,69,96,.4)}
+.sc-theater{font-size:15px;font-weight:800;margin-bottom:3px}
+.sc-loc{font-size:13px;color:var(--muted);margin-bottom:14px}
+.sc-times{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.time-btn{
+  padding:7px 14px;border-radius:7px;
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text);font-size:13px;font-weight:700;cursor:pointer;
+  transition:all .18s;
+}
+.time-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.time-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.sc-price{font-size:13px;color:var(--muted)}
+.sc-price strong{color:var(--gold)}
+.sc-avail{font-size:12px;color:var(--muted);margin-top:4px}
+.low-seats{color:var(--accent);font-size:11px;font-weight:700}
+
+/* BOOKING BAR */
+.bbar{
+  position:fixed;bottom:0;left:0;right:0;z-index:400;
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:14px 28px;display:none;
+  align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  box-shadow:0 -8px 32px rgba(0,0,0,.5);
+}
+.bbar.show{display:flex}
+.bbar-info strong{font-size:16px;color:var(--accent)}
+.bbar-info .sub{font-size:13px;color:var(--muted);margin-top:3px}
+
+/* ── SEAT MAP MODAL ── */
+.overlay{
+  position:fixed;inset:0;z-index:800;
+  background:rgba(0,0,0,.85);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;padding:16px;
+}
+.overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:28px;width:100%;max-width:680px;
+  max-height:92vh;overflow-y:auto;
+}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.modal-title{font-size:20px;font-weight:800}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.close-btn{background:none;border:none;color:var(--muted);font-size:24px;line-height:1;cursor:pointer;padding:0}
+.close-btn:hover{color:var(--text)}
+
+/* SCREEN */
+.screen-wrap{text-align:center;margin-bottom:24px}
+.screen{
+  display:inline-block;width:70%;height:6px;
+  background:linear-gradient(90deg,transparent,rgba(233,69,96,.6),transparent);
+  border-radius:3px;margin-bottom:6px;
+}
+.screen-label{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+
+/* SEAT LEGEND */
+.legend{display:flex;gap:20px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.leg-box{width:18px;height:18px;border-radius:4px;border:1px solid}
+.leg-avail{background:var(--surface);border-color:var(--border)}
+.leg-sel{background:var(--accent);border-color:var(--accent)}
+.leg-booked{background:#2a1a1a;border-color:#4a2a2a}
+
+/* SEAT GRID */
+.seat-map{overflow-x:auto;padding-bottom:8px}
+.seat-row-wrap{display:flex;align-items:center;gap:6px;margin-bottom:6px;min-width:max-content}
+.row-label{width:22px;text-align:center;font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0}
+.seat{
+  width:32px;height:32px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;cursor:pointer;
+  border:1px solid var(--border);background:var(--surface);
+  color:var(--muted);transition:all .15s;flex-shrink:0;
+}
+.seat:hover:not(.booked){background:rgba(233,69,96,.2);border-color:var(--accent);color:var(--accent)}
+.seat.selected{background:var(--accent);border-color:var(--accent);color:#fff}
+.seat.booked{background:#1e1010;border-color:#3a1a1a;color:#4a2a2a;cursor:not-allowed}
+.seat-gap{width:16px;flex-shrink:0}
+
+/* SELECTED SUMMARY */
+.sel-summary{
+  background:var(--card);border-radius:var(--radius);
+  padding:16px;margin-top:20px;margin-bottom:16px;
+}
+.sel-row{display:flex;justify-content:space-between;font-size:14px;padding:5px 0;border-bottom:1px solid var(--border)}
+.sel-row:last-child{border:none;font-weight:800;font-size:16px}
+.sel-row .sl{color:var(--muted)}
+.sel-seats-display{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.stag{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 10px;border-radius:6px;
+  background:rgba(233,69,96,.12);border:1px solid rgba(233,69,96,.3);
+  color:var(--accent);font-size:12px;font-weight:800;font-family:monospace;
+}
+
+/* PAYMENT */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+.inp{
+  width:100%;padding:10px 14px;border-radius:var(--radius);
+  background:var(--card);border:1px solid var(--border);
+  color:var(--text);font-size:14px;transition:border-color .2s;
+}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:var(--muted)}
+.modal-btns{display:flex;gap:10px;margin-top:4px}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+  <a href="/" class="back">← Back to Movies</a>
+  <div id="app"><div class="spin"></div></div>
+</div>
+
+<!-- BOOKING BAR -->
+<div class="bbar" id="bbar">
+  <div class="bbar-info">
+    <div id="bb-main"><strong>Select a show time above</strong></div>
+    <div class="sub" id="bb-sub"></div>
+  </div>
+  <button class="btn btn-red" onclick="openModal()">🎟 Select Seats & Book</button>
+</div>
+
+<!-- SEAT MAP MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Choose Your Seats</div>
+      </div>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-sub" id="m-sub"></div>
+
+    <!-- Screen indicator -->
+    <div class="screen-wrap">
+      <div class="screen"></div>
+      <div class="screen-label">Screen this way</div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="leg-item"><div class="leg-box leg-avail"></div>Available</div>
+      <div class="leg-item"><div class="leg-box leg-sel"></div>Selected</div>
+      <div class="leg-item"><div class="leg-box leg-booked"></div>Booked</div>
+    </div>
+
+    <!-- Seat map -->
+    <div class="seat-map" id="seat-map">
+      <div class="spin"></div>
+    </div>
+
+    <!-- Selected seats + summary -->
+    <div class="sel-summary" id="sel-summary">
+      <div class="sel-row"><span class="sl">Selected Seats</span><span id="ss-count">0</span></div>
+      <div class="sel-seats-display" id="ss-tags"><span style="color:var(--muted);font-size:13px">Click seats above to select</span></div>
+      <div class="sel-row"><span class="sl">Price per seat</span><span id="ss-price">₹0</span></div>
+      <div class="sel-row"><span class="sl">Total Amount</span><span id="ss-total">₹0</span></div>
+    </div>
+
+    <!-- Payment ID -->
+    <div class="field">
+      <label>Payment Reference ID</label>
+      <input class="inp" id="pay-id" placeholder="PAY_RAZORPAY_XXXXXXXX"/>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-red" style="flex:2" id="confirm-btn" onclick="confirmBooking()">
+        ✓ Confirm Booking
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const slug=location.pathname.replace(/^\/movies\//,'').replace(/\/$/,'');
+let movie=null,shows=[],selShow=null,selSeats=[],bookedSeats=[];
+
+// ── ROWS & COLS for seat map ──
+// Generate rows A-J (10 rows), 10 seats each = 100 seats per section
+// Two sections with aisle gap
+const ROWS=['A','B','C','D','E','F','G','H','I','J'];
+const COLS_LEFT=[1,2,3,4,5];
+const COLS_RIGHT=[6,7,8,9,10];
+
+async function init(){
+  const {ok,data}=await api(`/api/v1/movies/${slug}/`);
+  if(!ok){
+    document.getElementById('app').innerHTML=
+      `<div class="empty"><div class="empty-ico">😕</div><h3>Movie not found</h3>
+       <a href="/" class="btn btn-red" style="margin-top:16px">Browse Movies</a></div>`;
+    return;
+  }
+  movie=data;renderDetail(data);
+  const s=await api(`/api/v1/shows/?movie=${data.id}&limit=200`);
+  if(s.ok&&s.data.results.length){shows=s.data.results;renderShows();}
+  else document.getElementById('shows-area').innerHTML=
+    `<div class="empty"><div class="empty-ico">🎭</div><h3>No shows available</h3><p>Check back soon</p></div>`;
+}
+
+function renderDetail(m){
+  const r=parseFloat(m.rating).toFixed(1);
+  const genres=m.genres.map(g=>`<span class="badge b-red">${g.name}</span>`).join('');
+  const langs=m.languages.map(l=>`<span class="badge b-muted">${l.name}</span>`).join('');
+  const cert=m.certificate?`<span class="badge b-gold">${m.certificate}</span>`:'';
+  const poster=m.poster_url?`<img src="${m.poster_url}" alt="${m.title}"/>`:`<span>🎬</span>`;
+  document.getElementById('app').innerHTML=`
+    <div class="dh">
+      <div class="dh-poster">${poster}</div>
+      <div class="dh-info">
+        <h1 class="dh-title">${m.title}</h1>
+        <div class="dh-meta">
+          <span class="dh-rating">★ ${r}</span>
+          <span class="dh-votes">${m.votes_count.toLocaleString()} votes</span>
+          ${cert}
+          <span class="badge b-muted">${m.duration_minutes} min</span>
+        </div>
+        <div class="dh-tags">${genres}${langs}</div>
+        <p class="dh-desc">${m.description||'No description available.'}</p>
+        <div class="dh-credits">
+          ${m.director?`<div><div class="cr-label">Director</div><div class="cr-val">${m.director}</div></div>`:''}
+          ${m.release_date?`<div><div class="cr-label">Release Date</div><div class="cr-val">${m.release_date}</div></div>`:''}
+          ${m.cast_list&&m.cast_list.length?`<div style="grid-column:1/-1"><div class="cr-label">Cast</div><div class="cr-val">${m.cast_list.join(' · ')}</div></div>`:''}
+        </div>
+        ${m.trailer_url?`<a href="${m.trailer_url}" target="_blank" class="btn btn-ghost btn-sm">▶ Watch Trailer</a>`:''}
+      </div>
+    </div>
+    <div id="shows-area"><div class="spin"></div></div>
+  `;
+}
+
+function renderShows(){
+  const byDate={};
+  shows.forEach(s=>{const d=s.show_datetime.split('T')[0];(byDate[d]=byDate[d]||[]).push(s)});
+  const dates=Object.keys(byDate).sort();
+  const today=new Date().toISOString().split('T')[0];
+  const tabs=dates.map((d,i)=>
+    `<button class="date-btn ${i===0?'on':''}" onclick="switchDate('${d}',this)">${d===today?'Today':fmtDate(d)}</button>`
+  ).join('');
+  document.getElementById('shows-area').innerHTML=`
+    <div class="sec-title">Available Shows</div>
+    <div class="date-bar">${tabs}</div>
+    <div id="shows-day"></div>
+  `;
+  window._bd=byDate;
+  renderDay(byDate[dates[0]]);
+}
+
+function switchDate(d,btn){
+  document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');renderDay(window._bd[d]);
+}
+
+function renderDay(dayShows){
+  const byT={};
+  dayShows.forEach(s=>{const k=s.theater.id;(byT[k]=byT[k]||{t:s.theater,ss:[]}).ss.push(s)});
+  const html=Object.values(byT).map(({t,ss})=>{
+    const times=ss.map(s=>{
+      const low=s.available_seats<20?`<span class="low-seats"> · ${s.available_seats} left</span>`:'';
+      return`<button class="time-btn" data-sid="${s.id}" onclick="pickShow(${s.id})">${fmtTime(s.show_datetime)}${low}</button>`;
+    }).join('');
+    return`<div class="sc">
+      <div class="sc-theater">${t.name}</div>
+      <div class="sc-loc">📍 ${t.city} · ${ss[0].language} · ${ss[0].format}</div>
+      <div class="sc-times">${times}</div>
+      <div class="sc-price">From <strong>₹${ss[0].price_per_seat}</strong>/seat</div>
+      <div class="sc-avail">${ss.reduce((a,s)=>a+s.available_seats,0)} seats available</div>
+    </div>`;
+  }).join('');
+  document.getElementById('shows-day').innerHTML=`<div class="shows-grid">${html}</div>`;
+}
+
+function pickShow(id){
+  selShow=shows.find(s=>s.id===id);selSeats=[];
+  document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('on'));
+  document.querySelector(`.time-btn[data-sid="${id}"]`)?.classList.add('on');
+  const bar=document.getElementById('bbar');bar.classList.add('show');
+  document.getElementById('bb-main').innerHTML=
+    `<strong>${selShow.theater.name}</strong> · ${fmtTime(selShow.show_datetime)}`;
+  document.getElementById('bb-sub').textContent=
+    `₹${selShow.price_per_seat}/seat · ${selShow.available_seats} seats available`;
+}
+
+async function openModal(){
+  if(!selShow){toast('Please select a show time first','err');return;}
+  selSeats=[];
+  document.getElementById('pay-id').value='PAY_'+Math.random().toString(36).substr(2,10).toUpperCase();
+  document.getElementById('m-sub').textContent=
+    `${selShow.theater.name} · ${fmtTime(selShow.show_datetime)} · ₹${selShow.price_per_seat}/seat`;
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('seat-map').innerHTML='<div class="spin"></div>';
+  updateSummary();
+
+  // Fetch already-booked seats for this show
+  const {ok,data}=await api(`/api/v1/shows/${selShow.id}/booked-seats/`);
+  bookedSeats=ok?data.booked_seats:[];
+  renderSeatMap();
+}
+
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ── SEAT MAP ──
+function renderSeatMap(){
+  const map=document.getElementById('seat-map');
+  let html='';
+  for(const row of ROWS){
+    html+=`<div class="seat-row-wrap"><div class="row-label">${row}</div>`;
+    // Left section
+    for(const col of COLS_LEFT){
+      const id=`${row}${col}`;
+      const isBooked=bookedSeats.includes(id);
+      const isSel=selSeats.includes(id);
+      const cls=isBooked?'booked':isSel?'selected':'';
+      html+=`<div class="seat ${cls}" id="seat-${id}" onclick="toggleSeat('${id}')" title="${id}">${col}</div>`;
+    }
+    // Aisle gap
+    html+=`<div class="seat-gap"></div>`;
+    // Right section
+    for(const col of COLS_RIGHT){
+      const id=`${row}${col}`;
+      const isBooked=bookedSeats.includes(id);
+      const isSel=selSeats.includes(id);
+      const cls=isBooked?'booked':isSel?'selected':'';
+      html+=`<div class="seat ${cls}" id="seat-${id}" onclick="toggleSeat('${id}')" title="${id}">${col}</div>`;
+    }
+    html+=`</div>`;
+  }
+  map.innerHTML=html;
+}
+
+function toggleSeat(id){
+  const el=document.getElementById(`seat-${id}`);
+  if(!el||el.classList.contains('booked'))return;
+  if(selSeats.includes(id)){
+    selSeats=selSeats.filter(s=>s!==id);
+    el.classList.remove('selected');
+  }else{
+    if(selSeats.length>=10){toast('Maximum 10 seats per booking','err');return;}
+    selSeats.push(id);
+    el.classList.add('selected');
+  }
+  updateSummary();
+}
+
+function updateSummary(){
+  const n=selSeats.length;
+  const p=selShow?+selShow.price_per_seat:0;
+  const tot=(n*p).toFixed(2);
+  document.getElementById('ss-count').textContent=n;
+  document.getElementById('ss-price').textContent='₹'+p;
+  document.getElementById('ss-total').textContent='₹'+parseFloat(tot).toLocaleString('en-IN');
+  const tagsEl=document.getElementById('ss-tags');
+  tagsEl.innerHTML=n
+    ?selSeats.map(s=>`<span class="stag">${s}</span>`).join('')
+    :`<span style="color:var(--muted);font-size:13px">Click seats above to select</span>`;
+}
+
+async function confirmBooking(){
+  if(!selSeats.length){toast('Please select at least one seat','err');return;}
+  const pid=document.getElementById('pay-id').value.trim();
+  if(!pid){toast('Please enter a payment ID','err');return;}
+  const btn=document.getElementById('confirm-btn');
+  btn.textContent='Booking…';btn.disabled=true;
+
+  const {ok,status,data}=await api('/api/v1/bookings/',{
+    method:'POST',
+    body:JSON.stringify({show:selShow.id,seats:selSeats,payment_id:pid})
+  });
+
+  btn.textContent='✓ Confirm Booking';btn.disabled=false;
+
+  if(ok){
+    closeModal();
+    document.getElementById('bbar').classList.remove('show');
+    toast(`✓ Booking confirmed! Ref: ${data.data.booking_reference}`,'ok',5000);
+    setTimeout(()=>location.href='/my-bookings/',1800);
+  }else if(status===409){
+    toast('Payment ID already used. A new one has been generated.','err');
+    document.getElementById('pay-id').value='PAY_'+Math.random().toString(36).substr(2,10).toUpperCase();
+  }else{
+    const msg=data.message||(data.errors?JSON.stringify(data.errors):'Booking failed. Please try again.');
+    toast(msg,'err');
+  }
+}
+
+init();
+</script>
+{% endblock %}
