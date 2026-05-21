@@ -3,7 +3,8 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "gunicorn movie_booking.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120",
+    "preDeployCommand": "/opt/venv/bin/python manage.py migrate --noinput && /opt/venv/bin/python manage.py create_app_user",
+    "startCommand": "/opt/venv/bin/gunicorn movie_booking.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level info",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }

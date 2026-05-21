@@ -10,8 +10,6 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "/opt/venv/bin/python manage.py migrate --noinput",
-  "/opt/venv/bin/python manage.py create_app_user",
   "/opt/venv/bin/python manage.py collectstatic --noinput"
 ]
 
