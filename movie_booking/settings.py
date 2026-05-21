@@ -32,19 +32,20 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
 ]
 
-# Detect if running on Vercel serverless
-_IS_VERCEL = os.getenv('VERCEL', '') == '1'
+# Detect platform
+_IS_VERCEL  = os.getenv('VERCEL', '')   == '1'
+_IS_RAILWAY = os.getenv('RAILWAY_ENVIRONMENT', '') != ''
 
 # ============================================================
 # Production security headers — only active when DEBUG=False
 # ============================================================
 if not DEBUG:
-    SECURE_HSTS_SECONDS = 31536000          # 1 year
+    SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    # Vercel handles SSL at the edge — SECURE_SSL_REDIRECT would cause
-    # infinite redirect loops in serverless functions
-    SECURE_SSL_REDIRECT = not _IS_VERCEL
+    # Both Vercel and Railway terminate SSL at the edge proxy —
+    # enabling SECURE_SSL_REDIRECT here causes infinite redirect loops
+    SECURE_SSL_REDIRECT = not (_IS_VERCEL or _IS_RAILWAY)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
@@ -253,15 +254,16 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
 
 # ── Eager mode: run tasks inline when Redis is not available ──
-# In tests: always eager (no Redis needed)
-# In dev without Redis: USE_CELERY_EAGER=True in .env
-# On Vercel: always eager (serverless can't run Celery workers)
-# In production with Redis: leave unset (tasks queue normally)
+# In tests:   always eager (no Redis needed)
+# On Vercel:  always eager (serverless, no workers)
+# On Railway: eager unless REDIS_URL is explicitly set
+# In dev:     USE_CELERY_EAGER=True in .env
 import sys
-_is_test = 'test' in sys.argv
-_eager   = os.getenv('USE_CELERY_EAGER', 'False').lower() == 'true'
+_is_test    = 'test' in sys.argv
+_eager      = os.getenv('USE_CELERY_EAGER', 'False').lower() == 'true'
+_no_redis   = _IS_RAILWAY and os.getenv('REDIS_URL', '').startswith('redis://localhost')
 
-if _is_test or _eager or _IS_VERCEL:
+if _is_test or _eager or _IS_VERCEL or _no_redis:
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
 
@@ -353,9 +355,9 @@ LOGGING = {
     },
 }
 
-# Add file handler only in local dev (Vercel filesystem is read-only)
+# Add file handler only in local dev (Vercel/Railway filesystems are read-only)
 _log_file = BASE_DIR / 'logs' / 'django.log'
-if not _IS_VERCEL and _log_file.parent.exists():
+if not _IS_VERCEL and not _IS_RAILWAY and _log_file.parent.exists():
     LOGGING['handlers']['file'] = {
         'class': 'logging.FileHandler',
         'filename': _log_file,
