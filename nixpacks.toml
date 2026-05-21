@@ -1,15 +1,19 @@
 [phases.setup]
-nixPkgs = ["python311", "python311Packages.pip"]
+nixPkgs = ["python311"]
 
 [phases.install]
-cmds = ["pip install -r requirements.txt"]
+cmds = [
+  "python -m venv /opt/venv",
+  "/opt/venv/bin/pip install --upgrade pip",
+  "/opt/venv/bin/pip install -r requirements.txt"
+]
 
 [phases.build]
 cmds = [
-  "python manage.py migrate --noinput",
-  "python manage.py create_app_user",
-  "python manage.py collectstatic --noinput"
+  "/opt/venv/bin/python manage.py migrate --noinput",
+  "/opt/venv/bin/python manage.py create_app_user",
+  "/opt/venv/bin/python manage.py collectstatic --noinput"
 ]
 
 [start]
-cmd = "gunicorn movie_booking.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level info"
+cmd = "/opt/venv/bin/gunicorn movie_booking.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level info"
