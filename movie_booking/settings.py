@@ -130,8 +130,7 @@ DATABASE_URL = os.getenv('DATABASE_URL', '')
 USE_SQLITE = os.getenv('USE_SQLITE', 'False').lower() == 'true'
 
 if DATABASE_URL:
-    # Production: Neon / Supabase / Vercel Postgres via DATABASE_URL
-    # engine override ensures psycopg v3 is used (not the legacy psycopg2 backend)
+    # Production: Railway / Neon / Supabase PostgreSQL via DATABASE_URL
     DATABASES = {
         'default': dj_database_url.parse(
             DATABASE_URL,
